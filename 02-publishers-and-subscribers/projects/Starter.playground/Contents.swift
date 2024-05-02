@@ -330,6 +330,12 @@ example(of: "Async/Await") {
 		}
 		print("Completed.")
 	}
+
+	subject.send(1)
+	subject.send(2)
+	subject.send(3)
+
+	subject.send(completion: .finished)
 }
 
 
