@@ -7,13 +7,13 @@ var subscriptions = Set<AnyCancellable>()
 example(of: "Publisher") {
 	// 1
 	let myNotification = Notification.Name("MyNotification")
-
+	
 	// 2
 	let publisher = NotificationCenter.default.publisher(for: myNotification, object: nil)
-
+	
 	// 3
 	let center = NotificationCenter.default
-
+	
 	// 4
 	let observer = center.addObserver(
 		forName: myNotification,
@@ -21,10 +21,10 @@ example(of: "Publisher") {
 		queue: nil) { notification in
 			print("Notification received!")
 		}
-
+	
 	// 5
 	center.post(name: myNotification, object: nil)
-
+	
 	// 6
 	center.removeObserver(observer)
 }
@@ -34,16 +34,16 @@ example(of: "Subscriber") {
 	let myNotification = Notification.Name("MyNotification")
 	let center = NotificationCenter.default
 	let publisher = center.publisher(for: myNotification, object: nil)
-
+	
 	// 1
 	let subscription = publisher
 		.sink { _ in
 			print("Notification received from a publisher!")
 		}
-
+	
 	// 2
 	center.post(name: myNotification, object: nil)
-
+	
 	// 3
 	subscription.cancel()
 }
@@ -52,7 +52,7 @@ example(of: "Subscriber") {
 example(of: "Just") {
 	// 1
 	let just = Just("Hello world!")
-
+	
 	// 2
 	_ = just
 		.sink(receiveCompletion: {
@@ -60,7 +60,7 @@ example(of: "Just") {
 		}, receiveValue: {
 			print("Received value", $0)
 		})
-
+	
 	_ = just
 		.sink(receiveCompletion: {
 			print("Received completion (another)", $0)
@@ -79,13 +79,13 @@ example(of: "assign(to:on:)") {
 			}
 		}
 	}
-
+	
 	// 2
 	let object = SomeObject()
-
+	
 	// 3
 	let publisher = ["Hello", "world!"].publisher
-
+	
 	// 4
 	_ = publisher
 		.assign(to: \.value, on: object)
@@ -97,15 +97,15 @@ example(of: "assign(to:)") {
 	class SomeObject {
 		@Published var value = 0
 	}
-
+	
 	let object = SomeObject()
-
+	
 	// 2
 	object.$value
 		.sink {
 			print($0)
 		}
-
+	
 	// 3
 	(0..<10).publisher
 		.assign(to: &object.$value)
@@ -119,32 +119,32 @@ example(of: "assign(to:)") {
 // MARK: - Custom Subscriber
 example(of: "Custom Subscriber") {
 	// 1
-	let publisher = (1...5).publisher
-
-	// 2
-	final class IntSubscriber: Subscriber {
-
-		// 3
-		typealias Input = Int
-		typealias Failure = Never
-
-		// 4
-		func receive(subscription: Subscription) {
-			subscription.request(.max(3))
-		}
-
-		func receive(_ input: Int) -> Subscribers.Demand {
-			print("Received value", input)
-			return .none
-		}
-
-		func receive(completion: Subscribers.Completion<Never>) {
-			print("Received completion", completion)
-		}
-	}
-
-	let subscriber = IntSubscriber()
-	publisher.subscribe(subscriber)
+	//	let publisher = (1...5).publisher
+	//
+	//	// 2
+	//	final class IntSubscriber: Subscriber {
+	//
+	//		// 3
+	//		typealias Input = Int
+	//		typealias Failure = Never
+	//
+	//		// 4
+	//		func receive(subscription: Subscription) {
+	//			subscription.request(.max(3))
+	//		}
+	//
+	//		func receive(_ input: Int) -> Subscribers.Demand {
+	//			print("Received value", input)
+	//			return .none
+	//		}
+	//
+	//		func receive(completion: Subscribers.Completion<Never>) {
+	//			print("Received completion", completion)
+	//		}
+	//	}
+	//
+	//	let subscriber = IntSubscriber()
+	//	publisher.subscribe(subscriber)
 }
 
 // MARK: Future Example
@@ -180,36 +180,36 @@ example(of: "PassthroughSubject") {
 	enum MyError: Error {
 		case test
 	}
-
+	
 	// 2
 	final class StringSubscriber: Subscriber {
 		typealias Input = String
 		typealias Failure = MyError
-
+		
 		func receive(subscription: Subscription) {
 			subscription.request(.max(2))
 		}
-
+		
 		func receive(_ input: String) -> Subscribers.Demand {
 			print("Received value", input)
 			// 3
 			return input == "World" ? .max(1) : .none
 		}
-
+		
 		func receive(completion: Subscribers.Completion<MyError>) {
 			print("Received completion", completion)
 		}
 	}
-
+	
 	// 4
 	let subscriber = StringSubscriber()
-
+	
 	// 5
 	let subject = PassthroughSubject<String, MyError>()
-
+	
 	// 6
 	subject.subscribe(subscriber)
-
+	
 	// 7
 	let subscription = subject
 		.sink { completion in
@@ -217,16 +217,16 @@ example(of: "PassthroughSubject") {
 		} receiveValue: { value in
 			print("Received value (sink)", value)
 		}
-
+	
 	subject.send("Hello")
 	subject.send("World")
-
+	
 	// 8
 	subscription.cancel()
-
+	
 	// 9
 	subject.send("Still there?")
-
+	
 	subject.send(completion: .failure(MyError.test))
 	subject.send(completion: .finished)
 	subject.send("How about another one?")
@@ -236,44 +236,44 @@ example(of: "PassthroughSubject") {
 example(of: "CurrentValueSubject") {
 	// 1
 	var subscriptions = Set<AnyCancellable>()
-
+	
 	// 2
 	let subject = CurrentValueSubject<Int, Never>(0)
-
+	
 	// 3
 	subject
 		.print()
 		.sink(receiveValue: { print($0) })
 		.store(in: &subscriptions)
-
+	
 	subject.send(1)
 	subject.send(2)
 	print(subject.value)
 	subject.value = 3
 	print(subject.value)
-
+	
 	subject
 		.print()
 		.sink(receiveValue: { print("Second subscription", $0) })
 		.store(in: &subscriptions)
-
+	
 	subject.send(completion: .finished)
 }
 
 // MARK: Dynamically Adjusting Demand
 example(of: "Dynamically adjusting Demand") {
 	final class IntSubscriber: Subscriber {
-
+		
 		typealias Input = Int
 		typealias Failure = Never
-
+		
 		func receive(subscription: Subscription) {
 			subscription.request(.max(2))
 		}
-
+		
 		func receive(_ input: Int) -> Subscribers.Demand {
 			print("Receive value", input)
-
+			
 			switch input {
 			case 1:
 				return .max(2) // 1
@@ -283,18 +283,18 @@ example(of: "Dynamically adjusting Demand") {
 				return .none
 			}
 		}
-
+		
 		func receive(completion: Subscribers.Completion<Failure>) {
 			print("Received completion", completion)
 		}
 	}
-
+	
 	let subscriber = IntSubscriber()
-
+	
 	let subject = PassthroughSubject<Int, Never>()
-
+	
 	subject.subscribe(subscriber)
-
+	
 	subject.send(1)
 	subject.send(2)
 	subject.send(3)
@@ -307,15 +307,15 @@ example(of: "Dynamically adjusting Demand") {
 example(of: "Type Erasure") {
 	// 1
 	let subject = PassthroughSubject<Int, Never>()
-
+	
 	// 2
 	let publisher = subject.eraseToAnyPublisher()
-
+	
 	// 3
 	publisher
 		.sink(receiveValue: { print($0) })
 		.store(in: &subscriptions)
-
+	
 	// 4
 	subject.send(0)
 }
@@ -323,18 +323,18 @@ example(of: "Type Erasure") {
 // MARK: Async/Await
 example(of: "Async/Await") {
 	let subject = CurrentValueSubject<Int, Never>(0)
-
+	
 	Task {
 		for await element in subject.values {
 			print("Element: \(element)")
 		}
 		print("Completed.")
 	}
-
+	
 	subject.send(1)
 	subject.send(2)
 	subject.send(3)
-
+	
 	subject.send(completion: .finished)
 }
 

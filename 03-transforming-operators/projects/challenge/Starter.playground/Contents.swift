@@ -56,10 +56,20 @@ example(of: "Create a phone number lookup") {
     return "Dialing \(contact) (\(phoneNumber))..."
   }
   
-  let input = PassthroughSubject<String, Never>()
-  
-  <#Add your code here#>
-  
+	let input = PassthroughSubject<String, Never>()
+
+	// 1 Create a publisher that receives a string of ten numbers or letters
+	// and looks up that number in the contacts data structure.
+	// 2 Create a subscription to the input publisher using transforming operators and those functions
+
+	input
+		.map(convert)
+		.replaceNil(with: 0)
+		.collect(10)
+		.map(format)
+		.map(dial)
+		.sink { print($0) }
+
   "0!1234567".forEach {
     input.send(String($0))
   }
