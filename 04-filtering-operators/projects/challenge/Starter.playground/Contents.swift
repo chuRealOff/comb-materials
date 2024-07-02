@@ -3,7 +3,19 @@ import Combine
 
 var subscriptions = Set<AnyCancellable>()
 
-<#Add your code here#>
+// 1
+let numbers = (1...100).publisher
+
+// 2
+numbers
+	.dropFirst(50)
+	.prefix(20)
+	.filter({ $0 % 2 == 0 })
+	.sink(
+		receiveCompletion: { print("Completed with", $0) },
+		receiveValue: { print("Received value:", $0) }
+	)
+	.store(in: &subscriptions)
 
 /// Copyright (c) 2023 Kodeco Inc.
 ///
