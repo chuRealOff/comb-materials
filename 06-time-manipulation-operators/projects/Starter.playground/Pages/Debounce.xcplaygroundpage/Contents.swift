@@ -2,8 +2,38 @@ import Combine
 import SwiftUI
 import PlaygroundSupport
 
-<# Add your code here #>
+// 1
+let subject = PassthroughSubject<String, Never>()
 
+// 2
+let debounced = subject
+  .debounce(for: .seconds(1.0), scheduler: DispatchQueue.main)
+// 3
+	.share()
+
+let subjectTimeline = TimelineView(title: "Emitted values")
+let debouncedTimeline = TimelineView(title: "Debounced values")
+let view = VStack(spacing: 100) {
+	subjectTimeline
+	debouncedTimeline
+}
+
+PlaygroundPage.current.liveView = UIHostingController(rootView:
+view.frame(width: 375, height: 600))
+subject.displayEvents(in: subjectTimeline)
+debounced.displayEvents(in: debouncedTimeline)
+
+let subscription1 = subject
+	.sink { string in
+		print("+\(deltaTime)s: Subject emitted: \(string))")
+	}
+
+let subscription2 = debounced
+  .sink { string in
+	print("+\(deltaTime)s: Debounced emitted: \(string)")
+  }
+
+subject.feed(with: typingHelloWorld)
 //: [Next](@next)
 /*:
  Copyright (c) 2023 Kodeco Inc.
@@ -29,7 +59,7 @@ import PlaygroundSupport
  This project and source code may use libraries or frameworks that are
  released under various Open-Source licenses. Use of those libraries and
  frameworks are governed by their own individual licenses.
- 
+
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
